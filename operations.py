@@ -1,3 +1,5 @@
+# A helper script to post-process BTS Form 41 Traffic data
+
 import pandas as pd
 import numpy as np
 import matplotlib.ticker as tck
