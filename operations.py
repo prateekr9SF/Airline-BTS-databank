@@ -21,12 +21,12 @@ UA = 19977 # United
 WN = 19393 # Southwest
 #------------------------ AIRLINE CODES --------------------------#
 
-df15 = pd.read_csv("2015/T_T100D_SEGMENT_ALL_CARRIER.csv")
-df16 = pd.read_csv("2016/T_T100D_SEGMENT_ALL_CARRIER.csv")
-df17 = pd.read_csv("2017/T_T100D_SEGMENT_ALL_CARRIER.csv")
-df18 = pd.read_csv("2018/T_T100D_SEGMENT_ALL_CARRIER.csv")
-df19 = pd.read_csv("2019/T_T100D_SEGMENT_ALL_CARRIER.csv")
-df20 = pd.read_csv("2020/T_T100D_SEGMENT_ALL_CARRIER.csv")
+df15 = pd.read_csv("Data/2015/Ops/T_T100D_SEGMENT_ALL_CARRIER.csv")
+df16 = pd.read_csv("Data/2016/Ops/T_T100D_SEGMENT_ALL_CARRIER.csv")
+df17 = pd.read_csv("Data/2017/Ops/T_T100D_SEGMENT_ALL_CARRIER.csv")
+df18 = pd.read_csv("Data/2018/Ops/T_T100D_SEGMENT_ALL_CARRIER.csv")
+df19 = pd.read_csv("Data/2019/Ops/T_T100D_SEGMENT_ALL_CARRIER.csv")
+df20 = pd.read_csv("Data/2020/Ops/T_T100D_SEGMENT_ALL_CARRIER.csv")
 
   
 def  plot_asm_FSC(AA_metrics, UA_metrics, DL_metrics, labels):
@@ -89,7 +89,7 @@ def  plot_asm_FSC(AA_metrics, UA_metrics, DL_metrics, labels):
     # Show the plot
     #plt.title('ASM metrics for FSC per Year')
     plt.tight_layout()
-    plt.savefig('FSC_ASM.jpg')
+    plt.savefig('Plots/FSC_ASM.jpg')
     plt.show()
 
 
@@ -156,7 +156,7 @@ def  plot_rsm_FSC(AA_metrics, UA_metrics, DL_metrics, labels):
     # Show the plot
     #plt.title('ASM metrics for FSC per Year')
     plt.tight_layout()
-    plt.savefig('FSC_RSM.jpg')
+    plt.savefig('Plots/FSC_RSM.jpg')
     plt.show()
 
 
