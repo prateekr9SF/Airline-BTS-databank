@@ -19,8 +19,6 @@ UA = 19977 # United
 WN = 19393 # Southwest
 #------------------------ AIRLINE CODES --------------------------#
 
-TRG_AIRLINE = DL
-
 df15 = pd.read_csv("2015/T_T100D_SEGMENT_ALL_CARRIER.csv")
 df16 = pd.read_csv("2016/T_T100D_SEGMENT_ALL_CARRIER.csv")
 df17 = pd.read_csv("2017/T_T100D_SEGMENT_ALL_CARRIER.csv")
@@ -89,8 +87,72 @@ def  plot_asm_FSC(AA_metrics, UA_metrics, DL_metrics, labels):
     # Show the plot
     #plt.title('ASM metrics for FSC per Year')
     plt.tight_layout()
-    plt.show()
     plt.savefig('FSC_ASM.jpg')
+    plt.show()
+
+
+def  plot_rsm_FSC(AA_metrics, UA_metrics, DL_metrics, labels):
+    # Number of groups
+    n_groups = AA_metrics.shape[0]
+    
+    # Create the figure and the axes
+    fig2 = plt.figure()
+    ax2 = fig2.gca()
+
+    # Set the position of bar on X axis
+    index = np.arange(n_groups)
+    bar_width = 0.25
+    
+    # Factor for better data representation
+    Factor = 10**(-11)
+
+    # Plot RSM
+    plt.bar(index, AA_metrics[:, 1]* Factor, bar_width, label='American Airlines RSM', alpha=0.9, edgecolor= 'black')
+    plt.bar(index + bar_width, UA_metrics[:, 1]* Factor, bar_width, label='United Airlines RSM', alpha=0.9,edgecolor= 'black')
+    plt.bar(index + bar_width * 2, DL_metrics[:, 1]* Factor, bar_width, label='Delta Airlines RSM', alpha=0.9,edgecolor= 'black')
+    
+    # Adding Xticks
+    plt.xlabel('Year', fontname ='Times New Roman', fontsize = 22)
+    plt.ylabel(r'RSM (Revenue Seat Miles) $\times 10^{11} $', fontname ='Times New Roman', fontsize = 22)
+    plt.xticks(index + bar_width, labels)
+    
+    # Add a legend
+    handles, labels = [], []
+    for ax in fig2.axes:
+        for h, l in zip(*ax.get_legend_handles_labels()):
+            handles.append(h)
+            labels.append(l)
+
+    for axis in ['top','bottom','left','right']:
+        ax2.spines[axis].set_linewidth(1.5)
+
+    # Modify axes ticks properties
+    plt.xticks(fontname = "Times New Roman", fontsize  = 20)
+    plt.yticks(fontname = "Times New Roman", fontsize = 20)
+
+    ax2.tick_params(bottom=True, top=True, left=True, right=True)
+    ax2.tick_params(labelbottom=True, labeltop=False, labelleft=True, labelright=False)
+
+    # Plot grid properties
+    ax2.grid(which='major', color='black', linestyle='-', linewidth='0.01')
+
+
+    F = plt.gcf()
+    Size = F.get_size_inches()
+    F.set_size_inches(Size[0]*1.5, Size[1]*1.5, forward=True) # Set forward to True to resize window along with plot in figure.
+    
+    # ASM legend
+    plt.legend(handles[:3], labels[:3], loc='upper right')  
+
+
+    plt.rcParams['figure.dpi'] = 300
+    plt.rcParams['savefig.dpi'] = 300
+
+    # Show the plot
+    #plt.title('ASM metrics for FSC per Year')
+    plt.tight_layout()
+    plt.savefig('FSC_RSM.jpg')
+    plt.show()
 
 
 
@@ -129,5 +191,8 @@ UA_metrics = eval_rpm_asm(UA, data_frames)
 years = ['2015', '2016', '2017', '2018', '2019', '2020']
 
 # Call the function with the metrics and the years as the labels
-plot_asm_FSC(AA_metrics, UA_metrics, DL_metrics, years)
+#plot_asm_FSC(AA_metrics, UA_metrics, DL_metrics, years)
+
+# Call the function with the metrics and the years as the labels
+plot_rsm_FSC(AA_metrics, UA_metrics, DL_metrics, years)
 
