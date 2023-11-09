@@ -150,6 +150,9 @@ def  plot_rsm_FSC(AA_metrics, UA_metrics, DL_metrics, labels):
     plt.rcParams['figure.dpi'] = 300
     plt.rcParams['savefig.dpi'] = 300
 
+    # Set limits
+    ax2.set_ylim([0,1.6])
+
     # Show the plot
     #plt.title('ASM metrics for FSC per Year')
     plt.tight_layout()
