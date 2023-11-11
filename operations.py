@@ -7,8 +7,11 @@ import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 from metrics import *
 import airportsdata
+import matplotlib.cm as cm
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import matplotlib.colors as mcolors
+from matplotlib.cm import ScalarMappable
 
 #plt.style.use('seaborn-v0_8-dark-palette')
 plt.style.use('seaborn-v0_8-deep')
@@ -62,8 +65,20 @@ def routeRPM(TRG_AIRLINE, df):
     df_filtered['ASM_Segment'] = df_filtered['DISTANCE'] * df_filtered['SEATS']
     df_filtered['RPM_Segment'] = df_filtered['DISTANCE'] * df_filtered['PASSENGERS']
 
+    # Sort by RPM_Segment and take the top 10
+    df_top10 = df_filtered.sort_values(by='RPM_Segment', ascending=False).head(1000)
+
+    # Normalize RPM_Segment for color mapping
+    norm = mcolors.Normalize(vmin=df_top10['RPM_Segment'].min(), vmax=df_top10['RPM_Segment'].max())
+
     # Group data by 'ORIGIN'
     df_grouped = df_filtered.groupby('ORIGIN')
+
+    # Choose a colormap
+    cmap = cm.viridis
+
+    # Create ScalarMappable for colorbar
+    sm = ScalarMappable(norm=norm, cmap=cmap)
 
     # Load airports data
     airports = airportsdata.load('IATA')
@@ -82,30 +97,43 @@ def routeRPM(TRG_AIRLINE, df):
     # Set extent to cover the CONUS area
     ax.set_extent([-125, -66.5, 24, 49], crs=ccrs.PlateCarree())
 
-    # Loop through each flight
-    for index, row in df_filtered.iterrows():
+    # Track plotted routes to avoid duplication
+    plotted_routes = set()
+
+    # Loop through each of the top 10 flights
+    for index, row in df_top10.iterrows():
         origin = row['ORIGIN']
         destination = row['DEST']
+        rpm = row['RPM_Segment']
 
+        # Create a unique identifier for the route
+        route_id = frozenset([origin, destination])
 
-        # Retrieve coordinates for the origin and destination
-        if origin in airports and destination in airports:
+        # Check if the route has already been plotted
+        if route_id not in plotted_routes:
+            plotted_routes.add(route_id)
+
+            # Retrieve coordinates for the origin and destination
+            if origin in airports and destination in airports:
     
-            orig_coords = airports[origin]
-            dest_coords = airports[destination]
-            orig_lat, orig_lon = orig_coords['lat'], orig_coords['lon']
-            dest_lat, dest_lon = dest_coords['lat'], dest_coords['lon']
+                orig_coords = airports[origin]
+                dest_coords = airports[destination]
+                orig_lat, orig_lon = orig_coords['lat'], orig_coords['lon']
+                dest_lat, dest_lon = dest_coords['lat'], dest_coords['lon']
+
+                # Get color based on RPM
+                color = cmap(norm(rpm))
 
 
-            # Plot the great circle route
-            ax.plot([orig_lon, dest_lon], [orig_lat, dest_lat],
-                    color='k', linewidth=1, marker='o',
+                # Plot the great circle route
+                ax.plot([orig_lon, dest_lon], [orig_lat, dest_lat],
+                    color=color, linewidth=1, marker='o',
                     transform=ccrs.Geodetic())
+                
+    # Add colorbar to the figure
+    cbar = plt.colorbar(sm, ax=ax, orientation='vertical', fraction=0.02, pad=0.02)
+    cbar.set_label('RPM Segment', fontsize=12)
     plt.show()
-
-
-
-
 #end
 
 
