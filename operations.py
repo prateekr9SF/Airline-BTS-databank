@@ -37,6 +37,23 @@ df19 = pd.read_csv("Data/2019/Ops/T_T100D_SEGMENT_ALL_CARRIER.csv")
 df20 = pd.read_csv("Data/2020/Ops/T_T100D_SEGMENT_ALL_CARRIER.csv")
 
 
+def segLenFreq(TRG_AIRLINE, df):
+    # Filter the DataFrame
+    df_filtered = df[(df['AIRLINE_ID'] == TRG_AIRLINE) & (df['DISTANCE'] != 0) & (df['AIR_TIME'] != 0)].copy()
+
+    # Plotting the frequency distribution of DISTANCE
+    plt.figure(figsize=(10, 6))
+    plt.hist(df_filtered['DISTANCE'], bins=30, edgecolor='black', alpha=0.7)
+
+    # Adding labels and title
+    plt.xlabel('Distance (miles)', fontsize=12)
+    plt.ylabel('Frequency', fontsize=12)
+    plt.title(f'Frequency Distribution of Flight Distances for Airline {TRG_AIRLINE}', fontsize=14)
+
+    # Show the plot
+    plt.show()
+
+
 
 def eval_rpm_asm(TRG_AIRLINE, data_frames):
     results = []
@@ -57,16 +74,73 @@ def eval_rpm_asm(TRG_AIRLINE, data_frames):
     return np.array(results)
 #end
 
+def segLen(TRG_AIRLINE, df):
+    df_filtered = df[(df['AIRLINE_ID'] == TRG_AIRLINE) & (df['DISTANCE'] != 0) & (df['AIR_TIME'] != 0) & (df['ORIGIN'] == 'ATL')].copy()
+
+    # Group data by 'ORIGIN' and 'DESTINATION' and count the frequency
+    route_counts = df_filtered.groupby(['ORIGIN', 'DEST']).size()
+
+    # Normalize the frequencies for color mapping
+    norm = mcolors.Normalize(vmin=route_counts.min(), vmax=route_counts.max())
+
+    # Choose a colormap
+    cmap = cm.viridis
+
+    # Load airports data
+    airports = airportsdata.load('IATA')
+
+    # Create a figure with PlateCarree projection
+    fig = plt.figure(figsize=(15, 10))
+    ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
+
+    # Add geographical features
+    ax.add_feature(cfeature.COASTLINE)
+    ax.add_feature(cfeature.BORDERS)
+    ax.add_feature(cfeature.OCEAN)
+    ax.add_feature(cfeature.LAKES, alpha=0.5)
+    ax.add_feature(cfeature.RIVERS)
+
+    # Set extent to cover the CONUS area
+    ax.set_extent([-125, -66.5, 24, 49], crs=ccrs.PlateCarree())
+
+    # Loop through each flight
+    for (origin, destination), count in route_counts.iteritems():
+        if origin in airports and destination in airports:
+            orig_coords = airports[origin]
+            dest_coords = airports[destination]
+            orig_lat, orig_lon = orig_coords['lat'], orig_coords['lon']
+            dest_lat, dest_lon = dest_coords['lat'], dest_coords['lon']
+
+            # Get color based on frequency
+            color = cmap(norm(count))
+
+            # Plot the great circle route
+            ax.plot([orig_lon, dest_lon], [orig_lat, dest_lat],
+                    color=color, linewidth=1, marker='o', ms=0,
+                    transform=ccrs.Geodetic())
+
+    # Create ScalarMappable for colorbar
+    sm = ScalarMappable(norm=norm, cmap=cmap)
+
+    # Add colorbar to the figure
+    cbar = plt.colorbar(sm, ax=ax, orientation='vertical', fraction=0.02, pad=0.02)
+    cbar.set_label('Flight Frequency', fontsize=12)
+    plt.show()
+
+
+
+#####################
+
 def routeRPM(TRG_AIRLINE, df):
 
-    df_filtered = df[(df['AIRLINE_ID'] == TRG_AIRLINE) & (df['DISTANCE'] != 0) & (df['AIR_TIME'] != 0)].copy()
+    df_filtered = df[(df['AIRLINE_ID'] == TRG_AIRLINE) & (df['DISTANCE'] != 0) & (df['AIR_TIME'] != 0) & (df['ORIGIN'] == 'ATL')].copy()
 
 
     df_filtered['ASM_Segment'] = df_filtered['DISTANCE'] * df_filtered['SEATS']
     df_filtered['RPM_Segment'] = df_filtered['DISTANCE'] * df_filtered['PASSENGERS']
 
     # Sort by RPM_Segment and take the top 10
-    df_top10 = df_filtered.sort_values(by='RPM_Segment', ascending=False).head(1000)
+    df_top10 = df_filtered.sort_values(by='RPM_Segment', ascending=False)
 
     # Normalize RPM_Segment for color mapping
     norm = mcolors.Normalize(vmin=df_top10['RPM_Segment'].min(), vmax=df_top10['RPM_Segment'].max())
@@ -127,7 +201,7 @@ def routeRPM(TRG_AIRLINE, df):
 
                 # Plot the great circle route
                 ax.plot([orig_lon, dest_lon], [orig_lat, dest_lat],
-                    color=color, linewidth=1, marker='o',
+                    color=color, linewidth=1, marker='o', ms = 0,
                     transform=ccrs.Geodetic())
                 
     # Add colorbar to the figure
@@ -156,5 +230,8 @@ years = ['2015', '2016', '2017', '2018', '2019', '2020']
 #plot_rsm_FSC(AA_metrics, UA_metrics, DL_metrics, years)
 
 
-routeRPM(DL, df15)
+#routeRPM(DL, df15)
+#segLen(DL, df15)
+
+segLenFreq(DL, df15)
 
